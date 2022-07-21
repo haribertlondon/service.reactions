@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="service.reactions"
+       name="Kodi Reactions Plugin"
+      version="2.0.10"
+      provider-name="enen92, Solo0815, haribertlondon">
+    <requires>
+		<import addon="xbmc.addon" version="14.0.0"/>
+		<import addon="xbmc.python" version="3.0.0"/>
+    </requires>
+    <extension point="xbmc.service" library="service.py" start="login"/>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">Automate your home with reactions, like sleep, wake, start playing...</summary>        
+         <description lang="en">This service addon makes Kodi stop any playback if it exceeds a given playback time. If you have that awful habit of leaving Kodi playing live content after you fell asleep, this addon is for you! It gives extended control over the playback time. Step mute the audio, enable the screensaver or run a custom command after the playback is stopped.</description>                  
+    	 <source>https://github.com/haribertlondon/service.reactions</source>
+         <platform>all</platform>
+         <license>GPL-3.0</license>
+    </extension>
+</addon>
