@@ -5,7 +5,7 @@
       provider-name="enen92, Solo0815, haribertlondon">
     <requires>
 		<import addon="xbmc.addon" version="14.0.0"/>
-		<import addon="xbmc.python" version="3.0.0"/>
+		<import addon="xbmc.python" version="2.7.0"/>
     </requires>
     <extension point="xbmc.service" library="service.py" start="login"/>
     <extension point="xbmc.addon.metadata">
