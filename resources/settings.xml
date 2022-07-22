@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
 	<category label="30001">
-		<setting id="check_time" label="30002" default="5" type="slider" range="1,5,120" option="int"/>
+		<setting id="check_time" label="30002" default="5" type="slider" range="1,10,60,300" option="int"/>
+		<setting id="hysteresis" label="30007" default="3" type="slider" range="1,2,3,4,5" option="int"/>
 		<setting id="reactionStartPlaying" label="30003" type="text" default=""/>
 		<setting id="reactionStopPlaying" label="30004" type="text" default=""/>
 		<setting id="reactionScreenSaverOn" label="30005" type="text" default=""/>
