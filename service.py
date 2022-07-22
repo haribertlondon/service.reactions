@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""" Service Kodi Reactions  based on code by 2015 enen92, Solo0815
+""" Service Kodi Reactions  based on code by haribertlondon, based on enen92, Solo0815
 
 # This program is free software; you can redistribute it and/or modify it under the terms
 # of the GNU General Public License as published by the Free Software Foundation;
@@ -16,8 +16,6 @@
 
 """
 
-import time
-import datetime
 import xbmc
 import xbmcplugin
 import xbmcgui
@@ -25,8 +23,6 @@ import xbmcaddon
 import xbmcvfs
 import json
 import os
-
-msgdialogprogress = xbmcgui.DialogProgress()
 
 addon_id = 'service.reactions'
 selfAddon = xbmcaddon.Addon(addon_id)

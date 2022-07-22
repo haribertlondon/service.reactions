@@ -45,3 +45,11 @@ msgstr ""
 msgctxt "#30006"
 msgid "Reaction: Screensaver Off"
 msgstr ""
+
+msgctxt "#30008"
+msgid "Debug Mode"
+msgstr ""
+
+msgctxt "#30009"
+msgid "Pro-Settings"
+msgstr ""
