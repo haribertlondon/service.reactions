@@ -23,11 +23,11 @@ msgid "General"
 msgstr ""
 
 msgctxt "#30002"
-msgid "Service check time (seconds)"
+msgid "Service sleep time (seconds)"
 msgstr ""
 
 msgctxt "#30007"
-msgid "Hysteresis"
+msgid "Hysteresis (multiples of Service sleep time)"
 msgstr ""
 
 msgctxt "#30003"
