@@ -38,22 +38,27 @@ reactionCmdStopPlaying = selfAddon.getSetting('reactionStopPlaying')
 reactionCmdScreenSaverOn = selfAddon.getSetting('reactionScreenSaverOn')
 reactionCmdScreenSaverOff = selfAddon.getSetting('reactionScreenSaverOff')
 
-def _log( message ):
-    xbmc.log(addon_id + ": " + str(message), level=xbmc.LOGDEBUG)
+def _log( message, showOnlyInDebugMode = False ):
+    if showOnlyInDebugMode == False or debug:
+        xbmc.log(addon_id + ": " + str(message), level=xbmc.LOGDEBUG)
 
 # wait for abort - xbmc.sleep or time.sleep doesn't work
 # and prevents Kodi from exiting
 def wait( iTimeToWait ):
-    if debug == 'true':
-        _log ( "DEBUG: wait for " + str(iTimeToWait) + " sec" )
+    _log ( "DEBUG: wait for " + str(iTimeToWait) + " sec", True )
     if xbmc.Monitor().waitForAbort(int(iTimeToWait)):
         exit()
         
-def runCommand(cmd):
+def runCommand(cmd, info=""):
     if len(cmd)>0:
-        _log("Run command: " + str(cmd))
-        exitcode = os.system(cmd)
-        _log("Run command exit code: " + str(exitcode))
+        _log("Run command ("+info+"): " + str(cmd))
+        #exitcode = os.system(cmd)
+        try:
+            result = os.popen(cmd).read()
+            _log("Run command result: " + str(result))
+        except Exception as e:
+            _log("Run command exception: " + str(e))
+        
     
 
 class service:
@@ -69,13 +74,14 @@ class service:
         while not monitor.abortRequested():
             if lastPlayingState != xbmc.Player().isPlaying():
                 hysteresisCounter += 1
-                
+                _log("Change in state found. LastSate="  + str(lastPlayingState) + " Current State " + str(xbmc.Player().isPlaying()), True)
+                _log("Hysteresis counter = " + str(hysteresisCounter) + " Target Hysteresis: " + str(hysteresis), True)
                 if hysteresisCounter >= hysteresis:
                     lastPlayingState = xbmc.Player().isPlaying()
                     if xbmc.Player().isPlaying():
-                        runCommand(reactionCmdStartPlaying)                        
+                        runCommand(reactionCmdStartPlaying, "Start Playing")                        
                     else:
-                        runCommand(reactionCmdStopPlaying)
+                        runCommand(reactionCmdStopPlaying,"Stop Playing")
                 else:
                     #wait until hysteresis is completed
                     pass
