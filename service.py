@@ -72,7 +72,7 @@ class Observer():
     
     def check(self):
         currentState = self.functionGetCurrentState()            
-        if self.lastPlayingState != currentState:
+        if self.lastState != currentState:
             self.hysteresisCounter += 1
             _log("Change in state found. LastSate="  + str(self.lastState) + " Current State " + str(currentState), True)
             _log("Hysteresis counter = " + str(self.hysteresisCounter) + " Target Hysteresis: " + str(hysteresis), True)
