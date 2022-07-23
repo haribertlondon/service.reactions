@@ -8,8 +8,8 @@
 	</category>		
 	
 	<category label="30009">
-		<setting id="check_time" label="30002" default="5" type="slider" range="1,10,60,300" option="int"/>
-		<setting id="hysteresis" label="30007" default="3" type="slider" range="1,2,3,4,5" option="int"/>		
+		<setting id="check_time" label="30002" default="5" type="slider" range="1,1,300" option="int"/>
+		<setting id="hysteresis" label="30007" default="3" type="slider" range="1,1,5" option="int"/>		
 		<setting id="debug_mode" label="30008" type="bool" default="true"/>		
 	</category>		
 </settings>

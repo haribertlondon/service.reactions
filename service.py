@@ -30,13 +30,13 @@ addonfolder = xbmc.translatePath(selfAddon.getAddonInfo('path'))
 __version__ = selfAddon.getAddonInfo('version')
 
 debug=selfAddon.getSetting('debug_mode')
-check_time = selfAddon.getSetting('check_time')
+check_time = float(selfAddon.getSetting('check_time'))
 hysteresis = int(selfAddon.getSetting('hysteresis'))
 
-reactionStartPlaying = int(selfAddon.getSetting('reactionStartPlaying'))
-reactionStopPlaying = selfAddon.getSetting('reactionStopPlaying')
-reactionScreenSaverOn = int(selfAddon.getSetting('reactionScreenSaverOn'))
-reactionScreenSaverOff = int(selfAddon.getSetting('reactionScreenSaverOff'))
+reactionCmdStartPlaying = selfAddon.getSetting('reactionStartPlaying')
+reactionCmdStopPlaying = selfAddon.getSetting('reactionStopPlaying')
+reactionCmdScreenSaverOn = selfAddon.getSetting('reactionScreenSaverOn')
+reactionCmdScreenSaverOff = selfAddon.getSetting('reactionScreenSaverOff')
 
 def _log( message ):
     xbmc.log(addon_id + ": " + str(message), level=xbmc.LOGDEBUG)
@@ -50,8 +50,10 @@ def wait( iTimeToWait ):
         exit()
         
 def runCommand(cmd):
-    _log("Run command: ", cmd)
-    os.system(cmd)
+    if len(cmd)>0:
+        _log("Run command: " + str(cmd))
+        exitcode = os.system(cmd)
+        _log("Run command exit code: " + str(exitcode))
     
 
 class service:
@@ -71,9 +73,9 @@ class service:
                 if hysteresisCounter >= hysteresis:
                     lastPlayingState = xbmc.Player().isPlaying()
                     if xbmc.Player().isPlaying():
-                        runCommand(reactionStartPlaying)                        
+                        runCommand(reactionCmdStartPlaying)                        
                     else:
-                        runCommand(reactionStopPlaying)
+                        runCommand(reactionCmdStopPlaying)
                 else:
                     #wait until hysteresis is completed
                     pass
