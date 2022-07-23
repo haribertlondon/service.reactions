@@ -41,12 +41,6 @@ reactionScreenSaverOff = int(selfAddon.getSetting('reactionScreenSaverOff'))
 def _log( message ):
     xbmc.log(addon_id + ": " + str(message), level=xbmc.LOGDEBUG)
 
-# print the actual playing file in DEBUG-mode
-def print_act_playing_file():
-    if debug == 'true':
-        actPlayingFile = xbmc.Player().getPlayingFile()
-        _log (str(actPlayingFile))
-
 # wait for abort - xbmc.sleep or time.sleep doesn't work
 # and prevents Kodi from exiting
 def wait( iTimeToWait ):
