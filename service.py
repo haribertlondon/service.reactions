@@ -59,45 +59,50 @@ def runCommand(cmd, info=""):
         except Exception as e:
             _log("Run command exception: " + str(e))
         
+def getScreenSaverState():
+    return xbmc.getCondVisibility("System.ScreenSaverActive")  
+
+class Observer():
+    def __init__(self, cmdStart, cmdStop, functionGetCurrentState):
+        self.cmdStart = cmdStart
+        self.cmdStop = cmdStop
+        self.hysteresisCounter = 0
+        self.functionGetCurrentState = functionGetCurrentState
+        self.lastState = self.functionGetCurrentState()        
     
+    def check(self):
+        currentState = self.functionGetCurrentState()            
+        if self.lastPlayingState != currentState:
+            self.hysteresisCounter += 1
+            _log("Change in state found. LastSate="  + str(self.lastState) + " Current State " + str(currentState), True)
+            _log("Hysteresis counter = " + str(self.hysteresisCounter) + " Target Hysteresis: " + str(hysteresis), True)
+            if self.hysteresisCounter >= hysteresis:
+                self.lastState = self.functionGetCurrentState()
+                if currentState:
+                    runCommand(self.cmdStart, "Start Playing/Screensaver")                        
+                else:
+                    runCommand(self.cmdStop,"Stop Playing/Screensaver")
+            else:
+                #wait until hysteresis is completed
+                pass
+        else:
+            self.hysteresisCounter = 0                
+            #wait until state changes                
+            pass  
 
 class service:
     def __init__(self):
         monitor = xbmc.Monitor()                
         _log ( "started ... (" + str(__version__) + ")" )                
-
-        # wait 15s before start to let Kodi finish the intro-movie
-        wait(15)
         
-        lastPlayingState = xbmc.Player().isPlaying()
-        hysteresisCounter = 0
+        wait(15) # wait 15s before start to let Kodi finish the intro-movie
+        
+        playingObserver = Observer(reactionCmdStartPlaying, reactionCmdStopPlaying, xbmc.Player().isPlaying)
+        screensaverObserver = Observer(reactionCmdScreenSaverOn, reactionCmdScreenSaverOff, getScreenSaverState)        
+        
         while not monitor.abortRequested():
-            if lastPlayingState != xbmc.Player().isPlaying():
-                hysteresisCounter += 1
-                _log("Change in state found. LastSate="  + str(lastPlayingState) + " Current State " + str(xbmc.Player().isPlaying()), True)
-                _log("Hysteresis counter = " + str(hysteresisCounter) + " Target Hysteresis: " + str(hysteresis), True)
-                if hysteresisCounter >= hysteresis:
-                    lastPlayingState = xbmc.Player().isPlaying()
-                    if xbmc.Player().isPlaying():
-                        runCommand(reactionCmdStartPlaying, "Start Playing")                        
-                    else:
-                        runCommand(reactionCmdStopPlaying,"Stop Playing")
-                else:
-                    #wait until hysteresis is completed
-                    pass
-            else:
-                hysteresisCounter = 0                
-                #wait until state changes                
-                pass
-                
+            playingObserver.check()    
+            screensaverObserver.check()
             monitor.waitForAbort(check_time)
 
 service()
-
-#idle_time = xbmc.getGlobalIdleTime()
-#{"jsonrpc": "2.0", "method": "XBMC.GetInfoBooleans", "params": { "booleans": ["System.ScreenSaverActive "] }, "id": 1}
-#xbmc.executebuiltin('PlayerControl(Stop)')
-#xbmc.executebuiltin('SetVolume(%d,showVolumeBar)' % (curVol))
-#xbmc.executebuiltin('ActivateScreensaver')
-#os.system(cmd)
-#{"jsonrpc": "2.0", "method": "XBMC.GetInfoBooleans", "params": { "booleans": ["System.ScreenSaverActive "] }, "id": 1}
