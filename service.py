@@ -25,8 +25,8 @@ import os
 
 addon_id = 'service.reactions'
 selfAddon = xbmcaddon.Addon(addon_id)
-datapath = xbmc.translatePath(selfAddon.getAddonInfo('profile'))
-addonfolder = xbmc.translatePath(selfAddon.getAddonInfo('path'))
+datapath = xbmcvfs.translatePath(selfAddon.getAddonInfo('profile'))
+addonfolder = xbmcvfs.translatePath(selfAddon.getAddonInfo('path'))
 __version__ = selfAddon.getAddonInfo('version')
 
 debug=selfAddon.getSetting('debug_mode')
