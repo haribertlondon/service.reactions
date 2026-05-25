@@ -17,92 +17,133 @@
 """
 
 import xbmc
-import xbmcplugin
-import xbmcgui
 import xbmcaddon
 import xbmcvfs
-import os
+import subprocess
 
-addon_id = 'service.reactions'
-selfAddon = xbmcaddon.Addon(addon_id)
-datapath = xbmcvfs.translatePath(selfAddon.getAddonInfo('profile'))
-addonfolder = xbmcvfs.translatePath(selfAddon.getAddonInfo('path'))
-__version__ = selfAddon.getAddonInfo('version')
+ADDON_ID = 'service.reactions'
 
-debug=selfAddon.getSetting('debug_mode')
-check_time = float(selfAddon.getSetting('check_time'))
-hysteresis = int(selfAddon.getSetting('hysteresis'))
 
-reactionCmdStartPlaying = selfAddon.getSetting('reactionStartPlaying')
-reactionCmdStopPlaying = selfAddon.getSetting('reactionStopPlaying')
-reactionCmdScreenSaverOn = selfAddon.getSetting('reactionScreenSaverOn')
-reactionCmdScreenSaverOff = selfAddon.getSetting('reactionScreenSaverOff')
+def _log(message, show_only_in_debug_mode=False, debug=False):
+    if not show_only_in_debug_mode or debug:
+        xbmc.log(ADDON_ID + ": " + str(message), level=xbmc.LOGDEBUG)
 
-def _log( message, showOnlyInDebugMode = False ):
-    if showOnlyInDebugMode == False or debug:
-        xbmc.log(addon_id + ": " + str(message), level=xbmc.LOGDEBUG)
 
-# wait for abort - xbmc.sleep or time.sleep doesn't work
-# and prevents Kodi from exiting
-def wait( iTimeToWait ):
-    _log ( "DEBUG: wait for " + str(iTimeToWait) + " sec", True )
-    if xbmc.Monitor().waitForAbort(int(iTimeToWait)):
-        exit()
-        
-def runCommand(cmd, info=""):
-    if len(cmd)>0:
-        _log("Run command ("+info+"): " + str(cmd))
-        #exitcode = os.system(cmd)
+def run_command(cmd, info="", debug=False):
+    if len(cmd) > 0:
+        _log("Run command (" + info + "): " + str(cmd), debug=debug)
         try:
-            result = os.popen(cmd).read()
-            _log("Run command result: " + str(result))
+            result = subprocess.run(
+                cmd, shell=True, capture_output=True, text=True, timeout=30
+            )
+            _log("Run command result: " + str(result.stdout), debug=debug)
+            if result.stderr:
+                _log("Run command stderr: " + str(result.stderr), debug=debug)
+        except subprocess.TimeoutExpired:
+            _log("Run command timed out after 30s: " + str(cmd), debug=debug)
         except Exception as e:
-            _log("Run command exception: " + str(e))
-        
-def getScreenSaverState():
-    return xbmc.getCondVisibility("System.ScreenSaverActive")  
+            _log("Run command exception: " + str(e), debug=debug)
 
-class Observer():
-    def __init__(self, cmdStart, cmdStop, functionGetCurrentState):
-        self.cmdStart = cmdStart
-        self.cmdStop = cmdStop
-        self.hysteresisCounter = 0
-        self.functionGetCurrentState = functionGetCurrentState
-        self.lastState = self.functionGetCurrentState()        
-    
-    def check(self):
-        currentState = self.functionGetCurrentState()            
-        if self.lastState != currentState:
-            self.hysteresisCounter += 1
-            _log("Change in state found. LastSate="  + str(self.lastState) + " Current State " + str(currentState), True)
-            _log("Hysteresis counter = " + str(self.hysteresisCounter) + " Target Hysteresis: " + str(hysteresis), True)
-            if self.hysteresisCounter >= hysteresis:
-                self.lastState = self.functionGetCurrentState()
-                if currentState:
-                    runCommand(self.cmdStart, "Start Playing/Screensaver")                        
+
+def get_screensaver_state():
+    return xbmc.getCondVisibility("System.ScreenSaverActive")
+
+
+class Observer:
+    def __init__(self, cmd_start, cmd_stop, function_get_current_state):
+        self.cmd_start = cmd_start
+        self.cmd_stop = cmd_stop
+        self.hysteresis_counter = 0
+        self.function_get_current_state = function_get_current_state
+        self.last_state = self.function_get_current_state()
+
+    def check(self, hysteresis, debug=False):
+        current_state = self.function_get_current_state()
+        if self.last_state != current_state:
+            self.hysteresis_counter += 1
+            _log("Change in state found. LastState=" + str(self.last_state)
+                 + " Current State " + str(current_state), True, debug)
+            _log("Hysteresis counter = " + str(self.hysteresis_counter)
+                 + " Target Hysteresis: " + str(hysteresis), True, debug)
+            if self.hysteresis_counter >= hysteresis:
+                self.last_state = current_state
+                self.hysteresis_counter = 0
+                if current_state:
+                    run_command(self.cmd_start, "Start Playing/Screensaver", debug)
                 else:
-                    runCommand(self.cmdStop,"Stop Playing/Screensaver")
-            else:
-                #wait until hysteresis is completed
-                pass
+                    run_command(self.cmd_stop, "Stop Playing/Screensaver", debug)
         else:
-            self.hysteresisCounter = 0                
-            #wait until state changes                
-            pass  
+            self.hysteresis_counter = 0
 
-class service:
+
+class ReactionsMonitor(xbmc.Monitor):
+    """Custom Monitor that reloads settings when they change in the Kodi GUI."""
+
     def __init__(self):
-        monitor = xbmc.Monitor()                
-        _log ( "started ... (" + str(__version__) + ")" )                
-        
-        wait(15) # wait 15s before start to let Kodi finish the intro-movie
-        
-        playingObserver = Observer(reactionCmdStartPlaying, reactionCmdStopPlaying, xbmc.Player().isPlaying)
-        screensaverObserver = Observer(reactionCmdScreenSaverOn, reactionCmdScreenSaverOff, getScreenSaverState)        
-        
-        while not monitor.abortRequested():
-            playingObserver.check()    
-            screensaverObserver.check()
-            monitor.waitForAbort(check_time)
+        super().__init__()
+        self.settings_changed = True  # trigger initial load
 
-service()
+    def onSettingsChanged(self):
+        self.settings_changed = True
+
+
+def load_settings():
+    """Read all addon settings and return them as a dict."""
+    addon = xbmcaddon.Addon(ADDON_ID)
+    return {
+        'debug': addon.getSettingBool('debug_mode'),
+        'check_time': float(addon.getSetting('check_time')),
+        'hysteresis': int(addon.getSetting('hysteresis')),
+        'reaction_start_playing': addon.getSetting('reactionStartPlaying'),
+        'reaction_stop_playing': addon.getSetting('reactionStopPlaying'),
+        'reaction_screensaver_on': addon.getSetting('reactionScreenSaverOn'),
+        'reaction_screensaver_off': addon.getSetting('reactionScreenSaverOff'),
+    }
+
+
+class Service:
+    def __init__(self):
+        monitor = ReactionsMonitor()
+
+        addon = xbmcaddon.Addon(ADDON_ID)
+        version = addon.getAddonInfo('version')
+        _log("started ... (" + str(version) + ")")
+
+        # Wait 15s before start to let Kodi finish the intro-movie
+        if monitor.waitForAbort(15):
+            return
+
+        settings = load_settings()
+
+        # Keep a persistent Player reference to prevent garbage collection
+        player = xbmc.Player()
+
+        playing_observer = Observer(
+            settings['reaction_start_playing'],
+            settings['reaction_stop_playing'],
+            player.isPlaying
+        )
+        screensaver_observer = Observer(
+            settings['reaction_screensaver_on'],
+            settings['reaction_screensaver_off'],
+            get_screensaver_state
+        )
+
+        while not monitor.abortRequested():
+            # Reload settings if they were changed in the Kodi GUI
+            if monitor.settings_changed:
+                monitor.settings_changed = False
+                settings = load_settings()
+                playing_observer.cmd_start = settings['reaction_start_playing']
+                playing_observer.cmd_stop = settings['reaction_stop_playing']
+                screensaver_observer.cmd_start = settings['reaction_screensaver_on']
+                screensaver_observer.cmd_stop = settings['reaction_screensaver_off']
+                _log("Settings (re)loaded", True, settings['debug'])
+
+            playing_observer.check(settings['hysteresis'], settings['debug'])
+            screensaver_observer.check(settings['hysteresis'], settings['debug'])
+            monitor.waitForAbort(settings['check_time'])
+
+
+if __name__ == "__main__":
+    Service()

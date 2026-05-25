@@ -1,6 +1,6 @@
 # Kodi Media Center language file
 # Addon Name: Reactions Service
-# Addon id: service.sleeptimer
+# Addon id: service.reactions
 # Addon Provider: haribertlondon
 msgid ""
 msgstr ""
