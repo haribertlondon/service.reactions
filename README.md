@@ -46,12 +46,12 @@ You can use `curl` commands to call Home Assistant REST API endpoints. This exam
 
 **Reaction: Screensaver On**
 ```bash
-curl -X POST -H "Authorization: Bearer xxxxx.xxxxxx.xxxxx-xxxx-xxxx" -H "Content-Type: application/json" http://homeassistant.local:8123/api/services/input_button/press -d '{"entity_id": "input_button.button_sleepkodi_screensaver_goingactive"}'
+curl -X POST -H "Authorization: Bearer xxxxx.xxxxxx.xxxxx-xxxx-xxxx" -H "Content-Type: application/json" http://192.168.0.101:8123/api/services/input_button/press -d '{"entity_id": "input_button.button_sleepkodi_screensaver_goingactive"}'
 ```
 
 **Reaction: Screensaver Off**
 ```bash
-curl -X POST -H "Authorization: Bearer xxxxx.xxxxxx.xxxxx-xxxx-xxxx" -H "Content-Type: application/json" http://homeassistant.local:8123/api/services/input_button/press -d '{"entity_id": "input_button.button_sleepkodi_screensaver_goinginactive"}'
+curl -X POST -H "Authorization: Bearer xxxxx.xxxxxx.xxxxx-xxxx-xxxx" -H "Content-Type: application/json" http://192.168.0.101:8123/api/services/input_button/press -d '{"entity_id": "input_button.button_sleepkodi_screensaver_goinginactive"}'
 ```
 
 > **Note:** Replace `Bearer xxxxx.xxxxxx.xxxxx-xxxx-xxxx` with your actual [Home Assistant Long-Lived Access Token](https://developers.home-assistant.io/docs/auth_api/#long-lived-access-token) and adjust the entity IDs to match your setup.
